@@ -1,36 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Campus Navigation</title>
+  <title>Campus Navigation System</title>
 
+  <!-- Leaflet Map CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
   <style>
     body {
       margin: 0;
-      font-family: Arial;
+      font-family: Arial, sans-serif;
     }
 
     .topbar {
-      background: #2c3e50;
-      padding: 10px;
-      color: white;
+      background: #1e2a38;
+      padding: 12px;
       display: flex;
       gap: 10px;
+      align-items: center;
+      color: white;
     }
 
     input {
       padding: 8px;
-      width: 200px;
+      width: 220px;
+      border-radius: 6px;
+      border: none;
+      outline: none;
     }
 
     button {
-      padding: 8px;
+      padding: 8px 12px;
+      border: none;
+      background: #00c2ff;
+      color: white;
+      border-radius: 6px;
       cursor: pointer;
     }
 
+    button:hover {
+      background: #009ed1;
+    }
+
     #map {
-      height: 90vh;
+      height: 92vh;
     }
   </style>
 </head>
@@ -38,50 +51,106 @@
 <body>
 
 <div class="topbar">
-  <input id="searchBox" placeholder="Search building...">
+  <h3 style="margin:0;">Campus Navigator</h3>
+  <input id="searchBox" placeholder="Search: library, hostel, lab...">
   <button onclick="searchPlace()">Go</button>
 </div>
 
 <div id="map"></div>
 
+<!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
-  // 1. Create map
+  // 🗺️ Create Map
   var map = L.map('map').setView([9.9252, 78.1198], 16);
 
-  // 2. Load OpenStreetMap
+  // 🌍 OpenStreetMap Tiles (real map data)
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: 'Campus Map'
+    attribution: 'Campus Navigation System',
+    maxZoom: 19
   }).addTo(map);
 
-  // 3. Campus locations (EDIT THESE LATER)
+  // 🏫 Campus Locations (EDIT THESE FOR YOUR COLLEGE)
   var places = {
     "library": [9.9258, 78.1205],
     "cse lab": [9.9252, 78.1198],
     "hostel": [9.9265, 78.1210],
-    "canteen": [9.9248, 78.1195]
+    "canteen": [9.9248, 78.1195],
+    "admin block": [9.9255, 78.1188]
   };
 
-  // 4. Add markers
+  // 📍 Add markers for all places
   for (let key in places) {
     L.marker(places[key]).addTo(map)
-      .bindPopup(key.toUpperCase());
+      .bindPopup("🏫 " + key.toUpperCase());
   }
 
-  // 5. Search function
+  // 🧍 User location marker
+  let userMarker;
+  let routeLine;
+  let targetMarker;
+
+  // 📍 Get user location
+  map.locate({setView: true, maxZoom: 18});
+
+  map.on("locationfound", function(e) {
+    if (userMarker) {
+      map.removeLayer(userMarker);
+    }
+
+    userMarker = L.marker(e.latlng)
+      .addTo(map)
+      .bindPopup("📍 You are here")
+      .openPopup();
+  });
+
+  map.on("locationerror", function() {
+    alert("Location access denied. Enable GPS for navigation.");
+  });
+
+  // 🔍 Search + Route function
   function searchPlace() {
     let input = document.getElementById("searchBox").value.toLowerCase();
 
-    if (places[input]) {
-      map.setView(places[input], 18);
-      L.popup()
-        .setLatLng(places[input])
-        .setContent("You selected: " + input.toUpperCase())
-        .openOn(map);
-    } else {
-      alert("Place not found! Try: library, cse lab, hostel, canteen");
+    if (!places[input]) {
+      alert("Place not found! Try: library, hostel, canteen, cse lab");
+      return;
     }
+
+    let destination = places[input];
+
+    // Remove old route if exists
+    if (routeLine) {
+      map.removeLayer(routeLine);
+    }
+
+    // Remove old target marker
+    if (targetMarker) {
+      map.removeLayer(targetMarker);
+    }
+
+    // Get user position
+    let start = map.getCenter();
+
+    if (userMarker) {
+      start = userMarker.getLatLng();
+    }
+
+    // 🎯 Destination marker
+    targetMarker = L.marker(destination, {color: "red"})
+      .addTo(map)
+      .bindPopup("🎯 Destination: " + input.toUpperCase())
+      .openPopup();
+
+    // 🚶 Route line (simple straight line)
+    routeLine = L.polyline([start, destination], {
+      color: "blue",
+      weight: 4
+    }).addTo(map);
+
+    // Zoom to destination
+    map.setView(destination, 18);
   }
 </script>
 
