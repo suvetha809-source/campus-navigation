@@ -1,168 +1,88 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Campus Navigation App</title>
+  <title>Campus Navigation</title>
 
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #a18cd1, #6a82fb);
-            text-align: center;
-            color: #333;
-        }
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
-        header {
-            background: rgba(0,0,0,0.6);
-            color: white;
-            padding: 15px;
-            font-size: 22px;
-        }
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+    }
 
-        .screen {
-            display: none;
-        }
+    .topbar {
+      background: #2c3e50;
+      padding: 10px;
+      color: white;
+      display: flex;
+      gap: 10px;
+    }
 
-        .active {
-            display: block;
-        }
+    input {
+      padding: 8px;
+      width: 200px;
+    }
 
-        .card {
-            background: white;
-            width: 330px;
-            margin: 40px auto;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
+    button {
+      padding: 8px;
+      cursor: pointer;
+    }
 
-        button {
-            width: 90%;
-            padding: 12px;
-            margin: 8px;
-            border: none;
-            border-radius: 8px;
-            background: linear-gradient(45deg, #7f53ac, #647dee);
-            color: white;
-            cursor: pointer;
-            font-size: 15px;
-        }
-
-        button:hover {
-            transform: scale(1.05);
-        }
-
-        .back {
-            background: #444;
-        }
-    </style>
+    #map {
+      height: 90vh;
+    }
+  </style>
 </head>
 
 <body>
 
-<header>Campus Navigation App</header>
-
-<!-- SCREEN 1 -->
-<div id="screen1" class="screen active">
-    <div class="card">
-        <h2>Who are you?</h2>
-        <button onclick="nextScreen('screen2')">Student</button>
-        <button onclick="nextScreen('screen2')">Parent</button>
-    </div>
+<div class="topbar">
+  <input id="searchBox" placeholder="Search building...">
+  <button onclick="searchPlace()">Go</button>
 </div>
 
-<!-- SCREEN 2 -->
-<div id="screen2" class="screen">
-    <div class="card">
-        <h2>Select Location</h2>
+<div id="map"></div>
 
-        <button onclick="showLocation('cse')">CSE Department</button>
-        <button onclick="showLocation('civil')">Civil Department</button>
-        <button onclick="showLocation('ece')">ECE Department</button>
-        <button onclick="showLocation('canteen')">Canteen</button>
-        <button onclick="showLocation('prr hall')">PRR Hall</button>
-        <button onclick="showLocation('washroom')">Washroom</button>
-        <button onclick="showLocation('xerox')">Xerox</button>
-
-    </div>
-</div>
-
-<!-- SCREEN 3 -->
-<div id="screen3" class="screen">
-    <div class="card">
-        <h2 id="title"></h2>
-        <p id="details"></p>
-
-        <button class="back" onclick="back()">⬅ Back</button>
-    </div>
-</div>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
+  // 1. Create map
+  var map = L.map('map').setView([9.9252, 78.1198], 16);
 
-function nextScreen(screenId) {
-    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
-    document.getElementById(screenId).classList.add("active");
-}
+  // 2. Load OpenStreetMap
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: 'Campus Map'
+  }).addTo(map);
 
-function back() {
-    nextScreen("screen2");
-}
+  // 3. Campus locations (EDIT THESE LATER)
+  var places = {
+    "library": [9.9258, 78.1205],
+    "cse lab": [9.9252, 78.1198],
+    "hostel": [9.9265, 78.1210],
+    "canteen": [9.9248, 78.1195]
+  };
 
-function showLocation(place) {
+  // 4. Add markers
+  for (let key in places) {
+    L.marker(places[key]).addTo(map)
+      .bindPopup(key.toUpperCase());
+  }
 
-    nextScreen("screen3");
+  // 5. Search function
+  function searchPlace() {
+    let input = document.getElementById("searchBox").value.toLowerCase();
 
-    let title = document.getElementById("title");
-    let details = document.getElementById("details");
-
-    // CHANGE CONTENT BASED ON PLACE
-    if (place === "washroom") {
-        title.innerHTML = "🚻 Washrooms";
-        details.innerHTML = `
-            First Floor: Near CSE & Civil Department<br>
-            Second Floor: Near Staircase<br>
-            Third Floor: Near PRR Hall
-        `;
-        document.body.style.background = "linear-gradient(135deg, #cfd9df, #e2ebf0)";
+    if (places[input]) {
+      map.setView(places[input], 18);
+      L.popup()
+        .setLatLng(places[input])
+        .setContent("You selected: " + input.toUpperCase())
+        .openOn(map);
+    } else {
+      alert("Place not found! Try: library, cse lab, hostel, canteen");
     }
-
-    else if (place === "cse") {
-        title.innerHTML = "CSE Department";
-        details.innerHTML = "First Floor (Block A)";
-        document.body.style.background = "linear-gradient(135deg, #43e97b, #38f9d7)";
-    }
-
-    else if (place === "civil") {
-        title.innerHTML = "Civil Department";
-        details.innerHTML = "First Floor (Block A)";
-        document.body.style.background = "linear-gradient(135deg, #43e97b, #38f9d7)";
-    }
-
-    else if (place === "ece") {
-        title.innerHTML = "ECE Department";
-        details.innerHTML = "First Floor (Block B)";
-        document.body.style.background = "linear-gradient(135deg, #43e97b, #38f9d7)";
-    }
-
-    else if (place === "canteen") {
-        title.innerHTML = "Canteen";
-        details.innerHTML = "Near Ground Floor Entrance";
-        document.body.style.background = "linear-gradient(135deg, #f6d365, #fda085)";
-    }
-
-    else if (place === "prr hall") {
-        title.innerHTML = "PRR Hall";
-        details.innerHTML = "Third Floor";
-        document.body.style.background = "linear-gradient(135deg, #a18cd1, #6a82fb)";
-    }
-
-    else if (place === "xerox") {
-        title.innerHTML = "Xerox Shop";
-        details.innerHTML = "Pathway to Ground Floor";
-        document.body.style.background = "linear-gradient(135deg, #84fab0, #8fd3f4)";
-    }
-}
-
+  }
 </script>
 
 </body>
