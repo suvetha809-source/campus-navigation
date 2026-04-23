@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Campus Navigation App</title>
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+            background-color: #f2f2f2;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .box {
+            background: white;
+            padding: 20px;
+            margin: 20px auto;
+            width: 300px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px gray;
+        }
+        button {
+            padding: 10px;
+            background: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Campus Navigation App</h1>
+
+    <div class="box">
+        <p>Find your classrooms, labs and exam halls easily.</p>
+        <button onclick="showLocation()">Find Location</button>
+        <p id="result"></p>
+    </div>
+
+    <script>
+        function showLocation() {
+            document.getElementById("result").innerHTML =
+                "Example: Block A - Room 101";
+        }
+    </script>
+
+</body>
+</html>
