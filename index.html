@@ -1,20 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Campus Navigation System</title>
+  <title>Smart Campus Navigation System</title>
 
-  <!-- Leaflet Map CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
   <style>
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
+      font-family: Arial;
     }
 
     .topbar {
       background: #1e2a38;
-      padding: 12px;
+      padding: 10px;
       display: flex;
       gap: 10px;
       align-items: center;
@@ -24,7 +23,7 @@
     input {
       padding: 8px;
       width: 220px;
-      border-radius: 6px;
+      border-radius: 5px;
       border: none;
       outline: none;
     }
@@ -34,16 +33,30 @@
       border: none;
       background: #00c2ff;
       color: white;
-      border-radius: 6px;
+      border-radius: 5px;
       cursor: pointer;
     }
 
     button:hover {
-      background: #009ed1;
+      background: #009ecf;
     }
 
     #map {
-      height: 92vh;
+      height: 65vh;
+    }
+
+    #panel {
+      height: 25vh;
+      overflow-y: auto;
+      background: #f4f4f4;
+      padding: 10px;
+    }
+
+    .step {
+      background: white;
+      padding: 8px;
+      margin: 5px 0;
+      border-left: 4px solid #00c2ff;
     }
   </style>
 </head>
@@ -52,26 +65,25 @@
 
 <div class="topbar">
   <h3 style="margin:0;">Campus Navigator</h3>
-  <input id="searchBox" placeholder="Search: library, hostel, lab...">
-  <button onclick="searchPlace()">Go</button>
+  <input id="searchBox" placeholder="Search: library, hostel...">
+  <button onclick="navigate()">Start</button>
+  <button onclick="repeatVoice()">🔊 Repeat</button>
 </div>
 
 <div id="map"></div>
+<div id="panel">Directions will appear here...</div>
 
-<!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
-  // 🗺️ Create Map
+  // 🗺️ MAP INIT
   var map = L.map('map').setView([9.9252, 78.1198], 16);
 
-  // 🌍 OpenStreetMap Tiles (real map data)
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: 'Campus Navigation System',
     maxZoom: 19
   }).addTo(map);
 
-  // 🏫 Campus Locations (EDIT THESE FOR YOUR COLLEGE)
+  // 🏫 CAMPUS LOCATIONS
   var places = {
     "library": [9.9258, 78.1205],
     "cse lab": [9.9252, 78.1198],
@@ -80,77 +92,102 @@
     "admin block": [9.9255, 78.1188]
   };
 
-  // 📍 Add markers for all places
-  for (let key in places) {
-    L.marker(places[key]).addTo(map)
-      .bindPopup("🏫 " + key.toUpperCase());
+  // 📍 Mark all places
+  for (let p in places) {
+    L.marker(places[p]).addTo(map)
+      .bindPopup("🏫 " + p.toUpperCase());
   }
 
-  // 🧍 User location marker
-  let userMarker;
+  let userPos = null;
   let routeLine;
-  let targetMarker;
+  let lastSteps = [];
 
   // 📍 Get user location
   map.locate({setView: true, maxZoom: 18});
 
   map.on("locationfound", function(e) {
-    if (userMarker) {
-      map.removeLayer(userMarker);
-    }
+    userPos = e.latlng;
 
-    userMarker = L.marker(e.latlng)
+    L.marker(userPos)
       .addTo(map)
       .bindPopup("📍 You are here")
       .openPopup();
   });
 
   map.on("locationerror", function() {
-    alert("Location access denied. Enable GPS for navigation.");
+    alert("Enable GPS for navigation.");
   });
 
-  // 🔍 Search + Route function
-  function searchPlace() {
+  // 🗣️ Voice function
+  function speak(text) {
+    let msg = new SpeechSynthesisUtterance(text);
+    msg.lang = "en-US";
+    msg.rate = 1;
+    window.speechSynthesis.speak(msg);
+  }
+
+  // 🚶 MAIN NAVIGATION FUNCTION
+  function navigate() {
     let input = document.getElementById("searchBox").value.toLowerCase();
 
     if (!places[input]) {
-      alert("Place not found! Try: library, hostel, canteen, cse lab");
+      alert("Place not found!");
       return;
     }
 
-    let destination = places[input];
-
-    // Remove old route if exists
-    if (routeLine) {
-      map.removeLayer(routeLine);
+    if (!userPos) {
+      alert("Waiting for GPS location...");
+      return;
     }
 
-    // Remove old target marker
-    if (targetMarker) {
-      map.removeLayer(targetMarker);
-    }
+    let dest = places[input];
 
-    // Get user position
-    let start = map.getCenter();
+    // remove old route
+    if (routeLine) map.removeLayer(routeLine);
 
-    if (userMarker) {
-      start = userMarker.getLatLng();
-    }
-
-    // 🎯 Destination marker
-    targetMarker = L.marker(destination, {color: "red"})
-      .addTo(map)
-      .bindPopup("🎯 Destination: " + input.toUpperCase())
-      .openPopup();
-
-    // 🚶 Route line (simple straight line)
-    routeLine = L.polyline([start, destination], {
+    // draw route line
+    routeLine = L.polyline([userPos, dest], {
       color: "blue",
       weight: 4
     }).addTo(map);
 
-    // Zoom to destination
-    map.setView(destination, 18);
+    map.fitBounds(routeLine.getBounds());
+
+    // 📌 create steps
+    let steps = [
+      "Step 1: Start from your current location",
+      "Step 2: Walk straight towards campus road",
+      "Step 3: Follow signs to " + input.toUpperCase(),
+      "Step 4: You have reached " + input.toUpperCase()
+    ];
+
+    lastSteps = steps;
+    showSteps(steps);
+  }
+
+  // 📋 SHOW STEPS + VOICE
+  function showSteps(steps) {
+    let panel = document.getElementById("panel");
+    panel.innerHTML = "";
+
+    steps.forEach((step, i) => {
+      let div = document.createElement("div");
+      div.className = "step";
+      div.innerHTML = "👉 " + step;
+      panel.appendChild(div);
+
+      // 🔊 speak with delay
+      setTimeout(() => {
+        speak(step);
+      }, i * 2500);
+    });
+  }
+
+  // 🔁 repeat voice
+  function repeatVoice() {
+    lastSteps.forEach((step, i) => {
+      setTimeout(() => speak(step), i * 2500);
+    });
   }
 </script>
 
