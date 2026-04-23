@@ -1,35 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Campus Navigation App</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #a18cd1, #6a82fb);
+            text-align: center;
+            color: #333;
+        }
+
+        header {
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 15px;
+            font-size: 22px;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .active {
+            display: block;
+        }
+
+        .card {
+            background: white;
+            width: 330px;
+            margin: 40px auto;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        button {
+            width: 90%;
+            padding: 12px;
+            margin: 8px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(45deg, #7f53ac, #647dee);
+            color: white;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        .back {
+            background: #444;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>Campus Navigation App</header>
+
+<!-- SCREEN 1 -->
+<div id="screen1" class="screen active">
+    <div class="card">
+        <h2>Who are you?</h2>
+        <button onclick="nextScreen('screen2')">Student</button>
+        <button onclick="nextScreen('screen2')">Parent</button>
+    </div>
+</div>
+
+<!-- SCREEN 2 -->
+<div id="screen2" class="screen">
+    <div class="card">
+        <h2>Select Location</h2>
+
+        <button onclick="showLocation('cse')">CSE Department</button>
+        <button onclick="showLocation('civil')">Civil Department</button>
+        <button onclick="showLocation('ece')">ECE Department</button>
+        <button onclick="showLocation('canteen')">Canteen</button>
+        <button onclick="showLocation('prr hall')">PRR Hall</button>
+        <button onclick="showLocation('washroom')">Washroom</button>
+        <button onclick="showLocation('xerox')">Xerox</button>
+
+    </div>
+</div>
+
+<!-- SCREEN 3 -->
+<div id="screen3" class="screen">
+    <div class="card">
+        <h2 id="title"></h2>
+        <p id="details"></p>
+
+        <button class="back" onclick="back()">⬅ Back</button>
+    </div>
+</div>
+
 <script>
-    function findLocation() {
-        let input = document.getElementById("locationInput").value.toLowerCase().trim();
-        let result = document.getElementById("result");
 
-        if (input === "") {
-            result.innerHTML = "Please enter a location";
-            return;
-        }
+function nextScreen(screenId) {
+    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+    document.getElementById(screenId).classList.add("active");
+}
 
-        // Washroom (all floors)
-        if (input.includes("washroom") || input.includes("toilet")) {
-            result.innerHTML = "Washrooms are available on every floor (2 per floor)";
-        }
+function back() {
+    nextScreen("screen2");
+}
 
-        // CEC Department
-        else if (input.includes("cse")) {
-            result.innerHTML = "CSE Department - 1st Floor";
-        }
+function showLocation(place) {
 
-        // Civil Department
-        else if (input.includes("civil")) {
-            result.innerHTML = "Civil Department - 1st Floor";
-        }
+    nextScreen("screen3");
 
-        // PRR Seminar Hall
-        else if (input.includes("prr") || input.includes("seminar")) {
-            result.innerHTML = "PRR Seminar Hall - 3rd Floor";
-        }
+    let title = document.getElementById("title");
+    let details = document.getElementById("details");
 
-        else {
-            result.innerHTML = "Location not found";
-        }
+    // CHANGE CONTENT BASED ON PLACE
+    if (place === "washroom") {
+        title.innerHTML = "🚻 Washrooms";
+        details.innerHTML = `
+            First Floor: Near CSE & Civil Department<br>
+            Second Floor: Near Staircase<br>
+            Third Floor: Near PRR Hall
+        `;
+        document.body.style.background = "linear-gradient(135deg, #cfd9df, #e2ebf0)";
     }
+
+    else if (place === "cse") {
+        title.innerHTML = "CSE Department";
+        details.innerHTML = "First Floor (Block A)";
+        document.body.style.background = "linear-gradient(135deg, #43e97b, #38f9d7)";
+    }
+
+    else if (place === "civil") {
+        title.innerHTML = "Civil Department";
+        details.innerHTML = "First Floor (Block A)";
+        document.body.style.background = "linear-gradient(135deg, #43e97b, #38f9d7)";
+    }
+
+    else if (place === "ece") {
+        title.innerHTML = "ECE Department";
+        details.innerHTML = "First Floor (Block B)";
+        document.body.style.background = "linear-gradient(135deg, #43e97b, #38f9d7)";
+    }
+
+    else if (place === "canteen") {
+        title.innerHTML = "Canteen";
+        details.innerHTML = "Near Ground Floor Entrance";
+        document.body.style.background = "linear-gradient(135deg, #f6d365, #fda085)";
+    }
+
+    else if (place === "prr hall") {
+        title.innerHTML = "PRR Hall";
+        details.innerHTML = "Third Floor";
+        document.body.style.background = "linear-gradient(135deg, #a18cd1, #6a82fb)";
+    }
+
+    else if (place === "xerox") {
+        title.innerHTML = "Xerox Shop";
+        details.innerHTML = "Pathway to Ground Floor";
+        document.body.style.background = "linear-gradient(135deg, #84fab0, #8fd3f4)";
+    }
+}
+
 </script>
+
+</body>
+</html>
