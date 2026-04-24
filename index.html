@@ -1,123 +1,295 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Campus Navigation</title>
+<meta charset="UTF-8">
+<title>Campus Navigation</title>
 
-    <style>
-        body {
-            font-family: Arial;
-            margin: 0;
-            display: flex;
-        }
+<style>
+    body {
+        margin: 0;
+        font-family: 'Segoe UI', sans-serif;
+        background: #eef2f7;
+    }
 
-        /* LEFT SIDE */
-        .map-container {
-            width: 70%;
-            text-align: center;
-            padding: 20px;
-        }
+    header {
+        background: #1e3c72;
+        color: white;
+        padding: 15px;
+        text-align: center;
+        font-size: 22px;
+        font-weight: bold;
+    }
 
-        img {
-            width: 90%;
-            border-radius: 10px;
-        }
+    /* LOGIN */
+    .container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 90vh;
+    }
 
-        button {
-            padding: 10px;
-            margin: 10px;
-            cursor: pointer;
-        }
+    .card {
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        width: 350px;
+        text-align: center;
+    }
 
-        /* RIGHT SIDE */
-        .sidebar {
-            width: 30%;
-            background: #f4f4f4;
-            padding: 20px;
-        }
+    button {
+        padding: 10px 15px;
+        margin: 8px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        background: #1e3c72;
+        color: white;
+        font-weight: bold;
+    }
 
-        li {
-            margin: 5px 0;
-        }
-    </style>
+    button:hover {
+        background: #2a5298;
+    }
+
+    /* NAV PAGE */
+    .navPage {
+        display: none;
+        height: 100vh;
+        flex-direction: column;
+    }
+
+    /* MAIN LAYOUT */
+    .main {
+        display: flex;
+        height: 85vh;
+        width: 100%;
+        background: #000;
+    }
+
+    /* IMAGE SIDE - FIXED (FULL VIEW) */
+    .imageBox {
+        flex: 3;
+        background: #111;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .imageBox img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain; /* IMPORTANT FIX → NO CROPPING */
+        background: #000;
+    }
+
+    /* RIGHT PANEL */
+    .infoBox {
+        flex: 1;
+        background: white;
+        padding: 20px;
+        overflow-y: auto;
+        border-left: 3px solid #1e3c72;
+    }
+
+    .infoBox h2 {
+        color: #1e3c72;
+    }
+
+    ul {
+        text-align: left;
+        line-height: 1.8;
+        padding-left: 18px;
+    }
+
+    .controls {
+        margin-top: 15px;
+    }
+
+    /* BOTTOM BAR */
+    .bottomBar {
+        height: 15vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        background: #f5f7fa;
+    }
+
+    .voiceBtn {
+        margin-top: 10px;
+    }
+</style>
 </head>
 
 <body>
 
-<!-- LEFT SIDE -->
-<div class="map-container">
+<header>Campus Navigation System</header>
 
-    <h2 id="floorTitle">Ground Floor</h2>
-
-    <!-- YOUR IMAGE -->
-    <img src="first.jpeg">
-
-    <br>
-
-    <button onclick="prevFloor()">⬅ Previous</button>
-    <button onclick="nextFloor()">Next ➡</button>
-
+<!-- ROLE -->
+<div class="container" id="rolePage">
+    <div class="card">
+        <h2>Select Role</h2>
+        <button onclick="selectRole('Parent')">Parent</button>
+        <button onclick="selectRole('Teacher')">Teacher</button>
+        <button onclick="selectRole('Student')">Student</button>
+    </div>
 </div>
 
-<!-- RIGHT SIDE -->
-<div class="sidebar">
-    <h3>Places</h3>
-    <ul id="placesList"></ul>
+<!-- FLOOR -->
+<div class="container" id="floorPage" style="display:none;">
+    <div class="card">
+        <h2 id="welcomeText"></h2>
+        <button onclick="openFloor('ground')">Ground Floor</button>
+        <button onclick="openFloor('first')">First Floor</button>
+    </div>
+</div>
+
+<!-- NAVIGATION -->
+<div class="navPage" id="navPage">
+
+    <div class="main">
+
+        <!-- IMAGE -->
+        <div class="imageBox">
+            <img id="floorImage">
+        </div>
+
+        <!-- INFO -->
+        <div class="infoBox">
+            <h2 id="floorTitle"></h2>
+            <ul id="floorDetails"></ul>
+
+            <div class="controls">
+                <button onclick="speakFloor()">🔊 Speak</button>
+                <button onclick="startVoice()">🎤 Voice</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="bottomBar">
+        <button onclick="goBack()">⬅ Back</button>
+        <button onclick="nextFloor()">Next ➡</button>
+    </div>
+
 </div>
 
 <script>
 
-// FLOOR DATA
-let floors = [
-    {
-        name: "Ground Floor",
-        places: ["Entrance", "Reception", "Canteen", "Office"]
-    },
-    {
-        name: "First Floor",
-        places: ["Classroom 101", "Lab", "Library", "Washroom"]
-    },
-    {
-        name: "Second Floor",
-        places: ["Classroom 201", "Seminar Hall", "Staff Room"]
-    }
-];
+let currentFloor = "";
+let role = "";
 
-let currentFloor = 0;
+/* ROLE */
+function selectRole(r) {
+    role = r;
+    document.getElementById("rolePage").style.display = "none";
+    document.getElementById("floorPage").style.display = "flex";
+    document.getElementById("welcomeText").innerText = "Welcome " + role;
+}
 
-// UPDATE FUNCTION
-function updateFloor() {
+/* OPEN FLOOR */
+function openFloor(floor) {
+    currentFloor = floor;
+    document.getElementById("floorPage").style.display = "none";
+    document.getElementById("navPage").style.display = "flex";
+    loadFloor(floor);
+}
 
-    document.getElementById("floorTitle").innerText =
-        floors[currentFloor].name;
+/* LOAD DATA */
+function loadFloor(floor) {
 
-    let list = document.getElementById("placesList");
+    let img = document.getElementById("floorImage");
+    let title = document.getElementById("floorTitle");
+    let list = document.getElementById("floorDetails");
+
     list.innerHTML = "";
 
-    floors[currentFloor].places.forEach(place => {
-        let li = document.createElement("li");
-        li.innerText = place;
-        list.appendChild(li);
-    });
+    if (floor === "ground") {
+        img.src = "ground.jpeg";
+        title.innerText = "Ground Floor";
+
+        let items = [
+            "Office",
+            "Math Department",
+            "English Department",
+            "2 Washrooms",
+            "2 Stairs to First Floor"
+        ];
+
+        items.forEach(i => {
+            let li = document.createElement("li");
+            li.innerText = i;
+            list.appendChild(li);
+        });
+    }
+
+    if (floor === "first") {
+        img.src = "first.jpeg";
+        title.innerText = "First Floor";
+
+        let items = [
+            "CSE Department",
+            "ECE Class",
+            "CSE Class",
+            "Civil Class",
+            "AIML Class",
+            "ECE Department",
+            "Computer Labs",
+            "CAD Lab",
+            "2 Washrooms",
+            "2 Stairs to Second Floor"
+        ];
+
+        items.forEach(i => {
+            let li = document.createElement("li");
+            li.innerText = i;
+            list.appendChild(li);
+        });
+    }
 }
 
-// NEXT BUTTON
+/* BACK */
+function goBack() {
+    document.getElementById("navPage").style.display = "none";
+    document.getElementById("floorPage").style.display = "flex";
+}
+
+/* NEXT */
 function nextFloor() {
-    if (currentFloor < floors.length - 1) {
-        currentFloor++;
-        updateFloor();
-    }
+    if (currentFloor === "ground") openFloor("first");
+    else alert("More floors coming soon");
 }
 
-// PREVIOUS BUTTON
-function prevFloor() {
-    if (currentFloor > 0) {
-        currentFloor--;
-        updateFloor();
-    }
+/* SPEECH */
+function speakFloor() {
+    let text = document.getElementById("floorTitle").innerText +
+        " " +
+        Array.from(document.querySelectorAll("#floorDetails li"))
+        .map(li => li.innerText)
+        .join(", ");
+
+    let speech = new SpeechSynthesisUtterance(text);
+    speech.lang = "en-US";
+    window.speechSynthesis.speak(speech);
 }
 
-// INITIAL LOAD
-updateFloor();
+/* VOICE COMMAND */
+function startVoice() {
+    let recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = "en-US";
+    recognition.start();
+
+    recognition.onresult = function(event) {
+        let cmd = event.results[0][0].transcript.toLowerCase();
+
+        if (cmd.includes("ground")) openFloor("ground");
+        else if (cmd.includes("first")) openFloor("first");
+        else if (cmd.includes("next")) nextFloor();
+        else if (cmd.includes("back")) goBack();
+        else alert("Command not recognized: " + cmd);
+    };
+}
 
 </script>
 
