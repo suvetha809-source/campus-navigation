@@ -1,297 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Campus Navigation</title>
-
-<style>
-    body {
-        margin: 0;
-        font-family: 'Segoe UI', sans-serif;
-        background: #eef2f7;
-    }
-
-    header {
-        background: #1e3c72;
-        color: white;
-        padding: 15px;
-        text-align: center;
-        font-size: 22px;
-        font-weight: bold;
-    }
-
-    /* LOGIN */
-    .container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 90vh;
-    }
-
-    .card {
-        background: white;
-        padding: 25px;
-        border-radius: 15px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-        width: 350px;
-        text-align: center;
-    }
-
-    button {
-        padding: 10px 15px;
-        margin: 8px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        background: #1e3c72;
-        color: white;
-        font-weight: bold;
-    }
-
-    button:hover {
-        background: #2a5298;
-    }
-
-    /* NAV PAGE */
-    .navPage {
-        display: none;
-        height: 100vh;
-        flex-direction: column;
-    }
-
-    /* MAIN LAYOUT */
-    .main {
-        display: flex;
-        height: 85vh;
-        width: 100%;
-        background: #000;
-    }
-
-    /* IMAGE SIDE - FIXED (FULL VIEW) */
-    .imageBox {
-        flex: 3;
-        background: #111;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .imageBox img {
-        max-width: 100%;
-        max-height: 100%;
-        object-fit: contain; /* IMPORTANT FIX → NO CROPPING */
-        background: #000;
-    }
-
-    /* RIGHT PANEL */
-    .infoBox {
-        flex: 1;
-        background: white;
-        padding: 20px;
-        overflow-y: auto;
-        border-left: 3px solid #1e3c72;
-    }
-
-    .infoBox h2 {
-        color: #1e3c72;
-    }
-
-    ul {
-        text-align: left;
-        line-height: 1.8;
-        padding-left: 18px;
-    }
-
-    .controls {
-        margin-top: 15px;
-    }
-
-    /* BOTTOM BAR */
-    .bottomBar {
-        height: 15vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 20px;
-        background: #f5f7fa;
-    }
-
-    .voiceBtn {
-        margin-top: 10px;
-    }
-</style>
+    <meta charset="UTF-8">
+    <title>Campus Navigation</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-<header>Campus Navigation System</header>
-
-<!-- ROLE -->
-<div class="container" id="rolePage">
-    <div class="card">
-        <h2>Select Role</h2>
-        <button onclick="selectRole('Parent')">Parent</button>
-        <button onclick="selectRole('Teacher')">Teacher</button>
-        <button onclick="selectRole('Student')">Student</button>
-    </div>
+<!-- LANDING -->
+<div id="landing" class="center">
+    <h1>🏠 You are at Home</h1>
+    <button onclick="openMap()">Navigate to College</button>
+    <button onclick="enterCampus()">Skip</button>
 </div>
 
-<!-- FLOOR -->
-<div class="container" id="floorPage" style="display:none;">
-    <div class="card">
-        <h2 id="welcomeText"></h2>
-        <button onclick="openFloor('ground')">Ground Floor</button>
-        <button onclick="openFloor('first')">First Floor</button>
-    </div>
+<div id="mapPage" class="hidden center">
+    <h2>Getting your location...</h2>
+    <button onclick="getRoute()">Open Route in Maps</button>
+    <button onclick="enterCampus()">I Reached College</button>
+    <button onclick="goBackToApp()">⬅ Back to App</button>
 </div>
 
-<!-- NAVIGATION -->
-<div class="navPage" id="navPage">
+<!-- MAIN APP -->
+<div id="app" class="hidden">
 
-    <div class="main">
+    <!-- HEADER -->
+    <header>
+        <h2>Campus Navigation</h2>
 
-        <!-- IMAGE -->
-        <div class="imageBox">
-            <img id="floorImage">
-        </div>
-
-        <!-- INFO -->
-        <div class="infoBox">
-            <h2 id="floorTitle"></h2>
-            <ul id="floorDetails"></ul>
-
-            <div class="controls">
-                <button onclick="speakFloor()">🔊 Speak</button>
-                <button onclick="startVoice()">🎤 Voice</button>
+        <div class="right-controls">
+            <div class="search-box">
+                <input type="text" id="search" placeholder="Search location...">
+                <div id="suggestions" class="suggestions"></div>
             </div>
+            <button onclick="toggleLanguage()">🌐</button>
         </div>
+    </header>
 
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <button onclick="loadFloor('ground.jpeg')">Ground</button>
+        <button onclick="loadFloor('first.jpeg')">1st Floor</button>
+        <button onclick="loadFloor('second.jpeg')">2nd Floor</button>
+        <button onclick="loadFloor('third.jpeg')">3rd Floor</button>
     </div>
 
-    <div class="bottomBar">
-        <button onclick="goBack()">⬅ Back</button>
-        <button onclick="nextFloor()">Next ➡</button>
+    <!-- MAP -->
+    <div class="map-container">
+        <img id="floorMap" src="ground.jpeg">
+        <div id="locationsBox" class="locations"></div>
+    </div>
+
+    <!-- FLOATING BUTTONS -->
+    <div class="controls">
+        <button onclick="zoomIn()">+</button>
+        <button onclick="zoomOut()">-</button>
+        <button onclick="startAssistant()">🎤</button>
     </div>
 
 </div>
 
-<script>
-
-let currentFloor = "";
-let role = "";
-
-/* ROLE */
-function selectRole(r) {
-    role = r;
-    document.getElementById("rolePage").style.display = "none";
-    document.getElementById("floorPage").style.display = "flex";
-    document.getElementById("welcomeText").innerText = "Welcome " + role;
-}
-
-/* OPEN FLOOR */
-function openFloor(floor) {
-    currentFloor = floor;
-    document.getElementById("floorPage").style.display = "none";
-    document.getElementById("navPage").style.display = "flex";
-    loadFloor(floor);
-}
-
-/* LOAD DATA */
-function loadFloor(floor) {
-
-    let img = document.getElementById("floorImage");
-    let title = document.getElementById("floorTitle");
-    let list = document.getElementById("floorDetails");
-
-    list.innerHTML = "";
-
-    if (floor === "ground") {
-        img.src = "ground.jpeg";
-        title.innerText = "Ground Floor";
-
-        let items = [
-            "Office",
-            "Math Department",
-            "English Department",
-            "2 Washrooms",
-            "2 Stairs to First Floor"
-        ];
-
-        items.forEach(i => {
-            let li = document.createElement("li");
-            li.innerText = i;
-            list.appendChild(li);
-        });
-    }
-
-    if (floor === "first") {
-        img.src = "first.jpeg";
-        title.innerText = "First Floor";
-
-        let items = [
-            "CSE Department",
-            "ECE Class",
-            "CSE Class",
-            "Civil Class",
-            "AIML Class",
-            "ECE Department",
-            "Computer Labs",
-            "CAD Lab",
-            "2 Washrooms",
-            "2 Stairs to Second Floor"
-        ];
-
-        items.forEach(i => {
-            let li = document.createElement("li");
-            li.innerText = i;
-            list.appendChild(li);
-        });
-    }
-}
-
-/* BACK */
-function goBack() {
-    document.getElementById("navPage").style.display = "none";
-    document.getElementById("floorPage").style.display = "flex";
-}
-
-/* NEXT */
-function nextFloor() {
-    if (currentFloor === "ground") openFloor("first");
-    else alert("More floors coming soon");
-}
-
-/* SPEECH */
-function speakFloor() {
-    let text = document.getElementById("floorTitle").innerText +
-        " " +
-        Array.from(document.querySelectorAll("#floorDetails li"))
-        .map(li => li.innerText)
-        .join(", ");
-
-    let speech = new SpeechSynthesisUtterance(text);
-    speech.lang = "en-US";
-    window.speechSynthesis.speak(speech);
-}
-
-/* VOICE COMMAND */
-function startVoice() {
-    let recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.lang = "en-US";
-    recognition.start();
-
-    recognition.onresult = function(event) {
-        let cmd = event.results[0][0].transcript.toLowerCase();
-
-        if (cmd.includes("ground")) openFloor("ground");
-        else if (cmd.includes("first")) openFloor("first");
-        else if (cmd.includes("next")) nextFloor();
-        else if (cmd.includes("back")) goBack();
-        else alert("Command not recognized: " + cmd);
-    };
-}
-
-</script>
-
+<script src="script.js"></script>
 </body>
 </html>

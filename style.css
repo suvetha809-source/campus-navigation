@@ -1,0 +1,130 @@
+body {
+    margin: 0;
+    font-family: Arial;
+    background: linear-gradient(135deg, #36d1dc, #5b86e5);
+    color: white;
+}
+
+.hidden {
+    display: none;
+}
+
+.center {
+    text-align: center;
+    margin-top: 100px;
+}
+
+button {
+    padding: 10px 15px;
+    margin: 10px;
+    border: none;
+    border-radius: 8px;
+    background: #ff7a18;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #ff5200;
+}
+
+/* HEADER */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0,0,0,0.6);
+    padding: 10px 20px;
+}
+
+.right-controls {
+    display: flex;
+    align-items: center;
+}
+
+/* SEARCH */
+.search-box {
+    position: relative;
+    margin-right: 10px;
+}
+
+.search-box input {
+    padding: 8px;
+    width: 200px;
+    border-radius: 5px;
+    border: none;
+}
+
+.suggestions {
+    position: absolute;
+    background: white;
+    color: black;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    border-radius: 5px;
+    z-index: 1000;
+}
+
+.suggestions div {
+    padding: 8px;
+    cursor: pointer;
+}
+
+.suggestions div:hover {
+    background: #eee;
+}
+
+/* SIDEBAR */
+.sidebar {
+    position: fixed;
+    top: 70px;
+    left: 0;
+    width: 130px;
+    background: rgba(0,0,0,0.7);
+    height: 100%;
+}
+
+.sidebar button {
+    display: block;
+    width: 100%;
+    background: none;
+    border: none;
+}
+
+/* MAP */
+.map-container {
+    margin-left: 140px;
+    padding: 20px;
+}
+
+#floorMap {
+    width: 100%;
+    border-radius: 10px;
+    transition: transform 0.3s;
+}
+
+/* LOCATIONS */
+.locations {
+    background: white;
+    color: black;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 10px;
+}
+
+.locations p {
+    cursor: pointer;
+}
+
+/* FLOAT BUTTONS */
+.controls {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+}
+
+.controls button {
+    display: block;
+    margin: 5px;
+}
